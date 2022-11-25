@@ -24,12 +24,13 @@
     state: directory
     mode: "0755"
 
-# - name: Create registries.yaml
-#   become: true
-#   template:
-#     src: registries.yaml
-#     dest: /etc/rancher/k3s/registries.yaml
-#     mode: "0600"
+- name: Create registries.yaml
+  become: true
+  template:
+    src: registries.yaml
+    dest: /etc/rancher/k3s/registries.yaml
+    mode: "0600"
+  when: private_registry_url != ""
 
 - name: Install k3s on green
   command: >

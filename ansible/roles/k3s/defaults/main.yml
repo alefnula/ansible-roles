@@ -1,3 +1,7 @@
 project: k3s
 domain: "{{ project }}.test"
-cluster: "{{ project }}"
+cluster: vm
+
+private_registry_url: ""
+private_registry_user: ""
+private_registry_pass: ""

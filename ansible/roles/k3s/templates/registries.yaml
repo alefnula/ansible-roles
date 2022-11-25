@@ -1,0 +1,5 @@
+configs:
+  "{{ private_registry_url }}":
+    auth:
+      username: "{{ private_registry_user }}"
+      password: "{{ private_registry_pass }}"
