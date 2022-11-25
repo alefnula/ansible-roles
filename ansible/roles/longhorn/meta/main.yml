@@ -1,0 +1,10 @@
+galaxy_info:
+  platforms:
+    - name: Ubuntu
+      versions: [jammy]
+  author: Viktor Kerkez
+  description: Setup Longhorn
+  license: GNU AFFERO GENERAL PUBLIC LICENSE
+
+  min_ansible_version: "2.1"
+dependencies: []

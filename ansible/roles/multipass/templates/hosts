@@ -1,0 +1,9 @@
+{% for instance in instances -%}
+{%- if instance.name == "green" -%}
+{{ instance.ip }} {{ project }}.test
+{{ instance.ip }} www.{{ project }}.test
+
+# 3rd Party Services
+{{ instance.ip }} longhorn.{{ project }}.test
+{%- endif -%}
+{%- endfor %}

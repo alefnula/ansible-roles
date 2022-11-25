@@ -1,0 +1,7 @@
+project: k3s
+domain: "{{ project }}.test"
+longhorn_manifest: https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
+longhorn_uninstall_manifest: https://raw.githubusercontent.com/longhorn/longhorn/master/uninstall/uninstall.yaml
+longhorn_wait_timeout: "1200s"
+longhorn_ui_user: k3s
+longhorn_ui_pass: k3s

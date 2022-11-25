@@ -1,0 +1,10 @@
+galaxy_info:
+  platforms:
+    - name: MacOSX
+      versions: [all]
+  author: Viktor Kerkez
+  description: Bootstrap debian VMs using multipass.
+  license: GNU AFFERO GENERAL PUBLIC LICENSE
+
+  min_ansible_version: "2.1"
+dependencies: []

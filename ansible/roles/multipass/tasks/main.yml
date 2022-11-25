@@ -1,0 +1,106 @@
+---
+- name: Generate openssh key pair for VMs
+  openssh_keypair:
+    path: ~/.ssh/id_vm
+    type: ed25519
+    comment: "{{ email }}"
+    force: false
+
+- name: Create .multipass directory
+  file:
+    path: "{{ multipass_dir }}"
+    state: directory
+
+- name: Get latest Debian SHA512SUM
+  shell: curl -s "{{ debian_latest_url }}/SHA512SUMS" | grep "{{ debian_image }}" | awk -F ' ' '{print $1}'
+  register: sha512sum
+
+- name: Download latest Debian image
+  get_url:
+    url: "{{ debian_latest_url }}/{{ debian_image }}"
+    dest: "{{ multipass_dir }}/{{ debian_image }}"
+    checksum: "sha512:{{ sha512sum.stdout }}"
+
+# If the image is not a qcow2 image it needs to be converted
+# - name: Convert the image into qcow2 format
+#   command:
+#     argv:
+#       - "{{ qemu_img }}"
+#       - "convert"
+#       - "-O"
+#       - "qcow2"
+#       - "{{ multipass_dir }}/{{ debian_image }}"
+#       - "{{ multipass_dir }}/{{ debian_image_qcow2 }}"
+
+- name: Set multipass driver
+  command: "multipass set local.driver={{ multipass_driver }}"
+
+- name: Delete existing VMs
+  shell: |
+    multipass info {{ item }} > /dev/null 2> /dev/null
+    if [ $? -eq 0 ]; then
+      multipass delete {{ item }}
+      multipass purge
+    fi
+  loop: "{{ nodes }}"
+
+- name: Launch VMs
+  shell: |
+    cat << EOF | multipass launch --name {{ item }} --cloud-init - --mem {{ multipass_image_mem }} {{ multipass_image }}
+    {{ lookup('template', 'cloud-init.yml') }}
+    EOF
+  vars:
+    public_key: "{{ lookup('file', '~/.ssh/id_vm.pub') }}"
+  with_items: "{{ nodes }}"
+
+- name: Stop VMs to replace them with Debian
+  command: "multipass stop {{ item }}"
+  with_items: "{{ nodes }}"
+
+- name: Replace the images with Debian
+  become: true
+  copy:
+    src: "{{ multipass_dir }}/{{ debian_image_qcow2 }}"
+    dest: "{{ multipass_instance_location }}/{{ item }}/{{ multipass_ubuntu_image }}"
+  with_items: "{{ nodes }}"
+
+- name: Resize the image
+  command: multipass set local.{{ item }}.disk={{ multipass_image_size }}
+  with_items: "{{ nodes }}"
+
+- name: Start VMs
+  command: "multipass start {{ item }}"
+  with_items: "{{ nodes }}"
+
+# Get instance IPs
+- name: Set nodes_data var
+  set_fact:
+    nodes_data: "{{ nodes | to_json | regex_replace('^\\[(.*?)\\]$', '\\1')}}"
+
+- name: Get instance IPs
+  shell: >
+    multipass list --format json
+    | jq -c '[.list[] | select(.name | IN({{ nodes_data }})) | {name: .name, ip: .ipv4[0]}]'
+  register: running_instances
+
+- name: Set instances var
+  set_fact:
+    instances: "{{ running_instances.stdout | from_json }}"
+
+# Set ssh and hosts configuration
+- name: Update ssh configuration
+  blockinfile:
+    block: "{{ lookup('template', 'ssh_config') }}"
+    path: ~/.ssh/config
+    marker: "# {mark} {{ project|title }} VM SSH Configuration"
+    create: true
+    mode: "0600"
+
+- name: Set local and vm hostnames in /etc/hosts
+  become: true
+  blockinfile:
+    block: "{{ lookup('template', 'hosts') }}"
+    path: /etc/hosts
+    marker: "# {mark} {{ project|title }} VM Hostname Configuration"
+    create: true
+    mode: "0644"

@@ -1,0 +1,27 @@
+---
+- name: Install CloudnativePG operator
+  command: "kubectl apply -f {{ cloudnative_pg_manifest }}"
+
+- name: Wait for CloudnativePG to become available
+  shell: |
+    kubectl wait --timeout='{{ wait_timeout }}'  \
+                 --namespace=cnpg-system         \
+                 --for=condition=Available=true  \
+                 deployment cnpg-controller-manager
+    kubectl wait --timeout='{{ wait_timeout }}'  \
+                 --namespace=cnpg-system         \
+                 --for condition=Ready           \
+                 pods -l app.kubernetes.io/name=cloudnative-pg
+
+- name: Create postgres cluster
+  shell: |
+    cat <<EOF | kubectl apply -f -
+    {{ lookup('template', 'postgres-cluster.yml') }}
+    EOF
+
+- name: Wait for postgres cluster to become available
+  shell: |
+    kubectl wait --timeout='{{ wait_timeout }}'                 \
+                 --namespace='{{ postgres_cluster_namespace }}' \
+                 --for=condition=Ready=true                     \
+                 cluster '{{ postgres_cluster_name }}'

@@ -1,0 +1,30 @@
+---
+- name: Install Longhorn operator
+  command: "kubectl apply -f {{ longhorn_manifest }}"
+
+- name: Wait for Longhorn to become available
+  shell: |
+    kubectl wait --timeout='{{ longhorn_wait_timeout }}'  \
+                 --namespace=longhorn-system         \
+                 --for=condition=Available=true  \
+                 deployment {{ item }}
+  register: result
+  until: result.rc == 0
+  retries: 20
+  delay: 5
+  with_items:
+    - longhorn-admission-webhook
+    - longhorn-conversion-webhook
+    - longhorn-driver-deployer
+    - longhorn-recovery-backend
+    - longhorn-ui
+    - csi-attacher
+    - csi-provisioner
+    - csi-resizer
+    - csi-snapshotter
+
+- name: Create Longhorn Ingress
+  shell: |
+    cat <<EOF | kubectl apply -f -
+    {{ lookup('template', 'longhorn-ingress.yml') }}
+    EOF

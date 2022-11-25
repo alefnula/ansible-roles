@@ -1,0 +1,30 @@
+---
+- name: Update apt cache if needed
+  become: true
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Upgrade Ubuntu
+  become: true
+  apt:
+    upgrade: full
+    state: latest
+    update_cache: yes
+  notify: reboot
+
+- name: Install all required packages
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+
+- name: Start all services
+  become: true
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  loop: "{{ services }}"

@@ -1,0 +1,55 @@
+# VM Init
+- hosts: localhost
+  vars_files:
+    - "vars/defaults.yml"
+    - "vars/secrets.yml"
+  tags:
+    - init
+  roles:
+    - role: multipass
+
+
+# VM Setup
+- hosts: nodes
+  tags:
+    - setup
+  vars_files:
+    - "vars/defaults.yml"
+    - "vars/secrets.yml"
+  roles:
+    - setup
+
+
+# K3s
+- hosts: nodes
+  tags:
+    - k3s-up
+    - k3s-down
+  vars_files:
+    - "vars/defaults.yml"
+    - "vars/secrets.yml"
+  roles:
+    - k3s
+
+
+# Longhorn
+- hosts: localhost
+  tags:
+    - longhorn-up
+    - longhorn-down
+  vars_files:
+    - "vars/defaults.yml"
+    - "vars/secrets.yml"
+  roles:
+    - longhorn
+
+# PostgreSQL
+- hosts: localhost
+  tags:
+    - postgres-up
+    - postgres-down
+  vars_files:
+    - "vars/defaults.yml"
+    - "vars/secrets.yml"
+  roles:
+    - postgres

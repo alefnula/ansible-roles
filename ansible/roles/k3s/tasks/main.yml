@@ -1,0 +1,15 @@
+- name: K3s setup
+  tags: k3s-up
+  include_tasks:
+    file: up.yml
+    apply:
+      tags: k3s-up
+  when: '"k3s-up" in ansible_run_tags'
+
+- name: K3s teardown
+  tags: k3s-down
+  include_tasks:
+    file: down.yml
+    apply:
+      tags: k3s-down
+  when: '"k3s-down" in ansible_run_tags'

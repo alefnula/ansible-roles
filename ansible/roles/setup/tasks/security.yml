@@ -1,0 +1,27 @@
+---
+# SSH
+- name: Secure sshd
+  become: true
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: "sshd -T -f %s"
+  loop:
+    - regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    # - regexp: "^Port"
+    #   line: "Port 2849"
+
+- name: Restart sshd
+  become: true
+  service:
+    name: sshd
+    state: restarted
+
+- name: Wait for recoonection
+  wait_for_connection:
+    timeout: 300

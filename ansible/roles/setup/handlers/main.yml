@@ -1,0 +1,6 @@
+- name: Reboot VM
+  shell: "multipass stop {{ item }} && multipass start {{ item }}"
+  listen: reboot
+  delegate_to: "127.0.0.1"
+  when: color == "green"
+  with_items: "{{ nodes }}"

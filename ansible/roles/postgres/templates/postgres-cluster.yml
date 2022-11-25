@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{ postgres_cluster_namespace }}"
+  labels:
+    name: postgres
+
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/basic-auth
+metadata:
+  name: "{{ postgres_cluster_name}}-superuser-secret"
+  namespace: "{{ postgres_cluster_namespace }}"
+stringData:
+  username: "postgres"
+  password: "{{ postgres_superuser_pass }}"
+
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/basic-auth
+metadata:
+  name: "{{ postgres_cluster_name}}-secret"
+  namespace: "{{ postgres_cluster_namespace }}"
+stringData:
+  username: "{{ postgres_cluster_user }}"
+  password: "{{ postgres_cluster_pass }}"
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: "{{ postgres_cluster_name}}"
+  namespace: "{{ postgres_cluster_namespace }}"
+spec:
+  instances: {{ postgres_instances }}
+
+  superuserSecret:
+    name: "{{ postgres_cluster_name}}-superuser-secret"
+
+  bootstrap:
+    initdb:
+      database: "{{ postgres_cluster_db }}"
+      owner: "{{ postgres_cluster_user }}"
+      secret:
+        name: "{{ postgres_cluster_name}}-secret"
+
+  primaryUpdateStrategy: unsupervised
+  storage:
+    pvcTemplate:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: longhorn
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: 10Gi
+---
+# Expose rw replica outside cluster on port 30543
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ postgres_cluster_name}}-exposed-service"
+  namespace: "{{ postgres_cluster_namespace }}"
+spec:
+  type: NodePort
+  selector:
+    postgresql: "{{ postgres_cluster_name}}"
+    role: primary
+  ports:
+    - nodePort: 30543
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

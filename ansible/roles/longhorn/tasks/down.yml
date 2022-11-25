@@ -1,0 +1,12 @@
+---
+- name: Delete Longhorn Ingress
+  shell: |
+    cat <<EOF | kubectl delete -f -
+    {{ lookup('template', 'longhorn-ingress.yml') }}
+    EOF
+
+- name: Delete Longhorn operator
+  command: "kubectl create -f {{ longhorn_uninstall_manifest }}"
+
+- name: Wait for Longhorn uninstall
+  command: kubectl get job/longhorn-uninstall -n longhorn-system -w

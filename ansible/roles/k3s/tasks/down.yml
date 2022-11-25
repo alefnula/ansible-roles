@@ -1,0 +1,18 @@
+---
+- name: Remove cluster configuration from .kube/config
+  command: "kubectl config unset {{ item }}.{{ cluster }}"
+  with_items:
+    - users
+    - contexts
+    - clusters
+  when: color == "green"
+  delegate_to: "127.0.0.1"
+
+- name: Check if k3s is already installed
+  stat:
+    path: /usr/local/bin/k3s-uninstall.sh
+  register: uninstaller
+
+- name: Uninstall k3s if it's installed
+  command: /usr/local/bin/k3s-uninstall.sh
+  when: uninstaller.stat.exists

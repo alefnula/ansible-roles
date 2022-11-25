@@ -1,0 +1,3 @@
+project: k3s
+domain: "{{ project }}.test"
+cluster: "{{ project }}"

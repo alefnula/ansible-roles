@@ -1,0 +1,7 @@
+nodes:
+  - green
+  - blue
+  - red
+
+project: k3s
+domain: "{{ project }}.test"

@@ -1,0 +1,17 @@
+{% for instance in instances %}
+Host {{ instance.name }}.test
+    HostName {{ instance.ip }}
+    User ubuntu
+    IdentityFile ~/.ssh/id_vm
+    AddKeysToAgent yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile=/dev/null
+
+Host {{ instance.ip }}
+    User ubuntu
+    IdentityFile ~/.ssh/id_vm
+    AddKeysToAgent yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile=/dev/null
+
+{% endfor %}

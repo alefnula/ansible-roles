@@ -1,0 +1,15 @@
+- name: Longhorn setup
+  tags: longhorn-up
+  include_tasks:
+    file: up.yml
+    apply:
+      tags: longhorn-up
+  when: '"longhorn-up" in ansible_run_tags'
+
+- name: Longhorn teardown
+  tags: longhorn-down
+  include_tasks:
+    file: down.yml
+    apply:
+      tags: longhorn-down
+  when: '"longhorn-down" in ansible_run_tags'

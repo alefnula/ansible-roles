@@ -1,0 +1,87 @@
+---
+- name: Remove cluster configuration from .kube/config
+  command: "kubectl config unset {{ item }}.{{ cluster }}"
+  with_items:
+    - users
+    - contexts
+    - clusters
+  when: color == "green"
+  delegate_to: "127.0.0.1"
+
+- name: Check if k3s is already installed
+  stat:
+    path: /usr/local/bin/k3s-uninstall.sh
+  register: uninstaller
+
+- name: Uninstall k3s if it's installed
+  command: /usr/local/bin/k3s-uninstall.sh
+  when: uninstaller.stat.exists
+
+- name: Create k3s directory
+  become: true
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+
+# - name: Create registries.yaml
+#   become: true
+#   template:
+#     src: registries.yaml
+#     dest: /etc/rancher/k3s/registries.yaml
+#     mode: "0600"
+
+- name: Install k3s on green
+  command: >
+    k3sup install --ip='{{ ansible_host }}'
+                  --user='{{ ansible_user }}'
+                  --k3s-channel=stable
+                  --local-path=~/.kube/config
+                  --merge
+                  --context '{{ cluster }}'
+                  --cluster
+                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+  failed_when: false
+  when: color == "green"
+  delegate_to: "127.0.0.1"
+
+- name: Wait for green to bootstrap the cluster
+  command: kubectl get nodes
+  register: result
+  until: result.stdout_lines | select('match', '^' + color + '\s+Ready\s+control\-plane,etcd,master.*$') | list | count == 1
+  retries: 20
+  delay: 5
+  when: color == "green"
+  delegate_to: "127.0.0.1"
+
+- name: Get the green node ip
+  set_fact:
+    green_ip: "{{ hostvars[groups['green'][0]]['ansible_host'] }}"
+  delegate_to: “{{ groups['green'][0] }}“
+
+- name: Install k3s on the rest of the nodes
+  command: >
+    k3sup join --ip='{{ ansible_host }}'
+               --user='{{ ansible_user }}'
+               --server-ip='{{ green_ip }}'
+               --server-user='{{ ansible_user }}'
+               --k3s-channel=stable
+               --server
+               --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+  when: color != "green"
+  delegate_to: "127.0.0.1"
+  failed_when: false
+
+- name: Wait for the rest of the nodes to come online
+  command: kubectl get nodes
+  register: result
+  until: result.stdout_lines | select('match', '^' + color + '\s+Ready\s+control\-plane,etcd,master.*$') | list | count == 1
+  retries: 20
+  delay: 5
+  when: color != "green"
+  delegate_to: "127.0.0.1"
+
+- name: Set kubectl context
+  command: "kubectl config set-context {{ cluster }}"
+  when: color == "green"
+  delegate_to: "127.0.0.1"

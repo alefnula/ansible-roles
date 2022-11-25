@@ -1,0 +1,5 @@
+#cloud-config
+users:
+  - name: ubuntu
+    ssh_authorized_keys:
+      - "{{ public_key }}"

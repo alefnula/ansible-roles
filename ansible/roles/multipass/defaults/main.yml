@@ -1,0 +1,18 @@
+project: k3s
+email: "{{ project }}@{{ project }}.test"
+nodes:
+  - green
+  - blue
+  - red
+
+qemu_img: "/Library/Application Support/com.canonical.multipass/bin/qemu-img"
+multipass_dir: "{{ playbook_dir | dirname }}/.multipass"
+multipass_driver: qemu
+multipass_image: "22.04"
+multipass_image_mem: "6G"
+multipass_image_size: "50G"
+multipass_instance_location: "/var/root/Library/Application Support/multipassd/qemu/vault/instances"
+multipass_ubuntu_image: "ubuntu-22.04-server-cloudimg-arm64.img"
+debian_latest_url: "https://cloud.debian.org/images/cloud/bullseye/latest"
+debian_image: "debian-11-generic-arm64.qcow2"
+debian_image_qcow2: "{{ debian_image | splitext | first }}.qcow2"
