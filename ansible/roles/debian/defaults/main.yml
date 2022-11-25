@@ -1,3 +1,7 @@
+project: k3s
+domain: "{{ project }}.test"
+cluster: vm
+
 packages:
   - acl # Needed for becoming non root user (i.e. postgres)
   - curl

@@ -1,0 +1,12 @@
+- name: Reboot System
+  become: true
+  reboot:
+  listen: reboot
+  when: cluster != "vm"
+
+- name: Reboot VM System
+  shell: "multipass stop {{ item }} && multipass start {{ item }}"
+  listen: reboot
+  delegate_to: "127.0.0.1"
+  when: cluster == "vm" and color == "green"
+  with_items: "{{ nodes }}"

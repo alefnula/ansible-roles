@@ -17,7 +17,7 @@
     - "vars/defaults.yml"
     - "vars/secrets.yml"
   roles:
-    - setup
+    - debian
 
 
 # K3s

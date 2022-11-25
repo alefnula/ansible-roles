@@ -1,2 +1,0 @@
-project: k3s
-domain: "{{ project }}.test"
