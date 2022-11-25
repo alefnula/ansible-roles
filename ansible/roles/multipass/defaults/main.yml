@@ -5,6 +5,9 @@ nodes:
   - blue
   - red
 
+subdomains:
+  - www
+
 qemu_img: "/Library/Application Support/com.canonical.multipass/bin/qemu-img"
 multipass_dir: "{{ playbook_dir | dirname }}/.multipass"
 multipass_driver: qemu

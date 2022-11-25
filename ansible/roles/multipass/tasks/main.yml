@@ -32,9 +32,6 @@
 #       - "{{ multipass_dir }}/{{ debian_image }}"
 #       - "{{ multipass_dir }}/{{ debian_image_qcow2 }}"
 
-- name: Set multipass driver
-  command: "multipass set local.driver={{ multipass_driver }}"
-
 - name: Delete existing VMs
   shell: |
     multipass info {{ item }} > /dev/null 2> /dev/null
@@ -46,7 +43,7 @@
 
 - name: Launch VMs
   shell: |
-    cat << EOF | multipass launch --name {{ item }} --cloud-init - --mem {{ multipass_image_mem }} {{ multipass_image }}
+    cat << EOF | multipass launch --name {{ item }} --mem {{ multipass_image_mem }} --cloud-init - {{ multipass_image }}
     {{ lookup('template', 'cloud-init.yml') }}
     EOF
   vars:

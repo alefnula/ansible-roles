@@ -17,6 +17,16 @@ vim .passwd
 
 ## Setup Virtual Machines
 
+### Setup multipass
+
+Set multipass local driver to `qemu`:
+
+```
+multipass set local.driver=qemu
+```
+
+### Running the instances
+
 ```
 mage vm:init
 mage vm:setup

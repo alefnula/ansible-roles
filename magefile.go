@@ -16,6 +16,9 @@ import (
 var VaultArgs []string
 
 func init() {
+	// Set colors
+	os.Setenv("MAGEFILE_ENABLE_COLOR", "true")
+
 	if _, err := os.Stat(".passwd"); err == nil {
 		VaultArgs = []string{"--vault-password-file", ".passwd"}
 	} else {
