@@ -2,8 +2,8 @@ wait_timeout: "1200s"
 cloudnative_pg_manifest: "https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.18/releases/cnpg-1.18.0.yaml"
 postgres_instances: 2
 postgres_superuser_pass: "k3s"
-postgres_cluster_name: "postgres-cluster"
 postgres_cluster_namespace: postgres
+postgres_cluster_name: "postgres-cluster"
 postgres_cluster_user: "k3s"
 postgres_cluster_pass: "k3s"
 postgres_cluster_db: "k3s"
