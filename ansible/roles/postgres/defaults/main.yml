@@ -7,3 +7,8 @@ postgres_cluster_name: "postgres-cluster"
 postgres_cluster_user: "k3s"
 postgres_cluster_pass: "k3s"
 postgres_cluster_db: "k3s"
+
+# backup
+minio_url: ""
+minio_access_key: ""
+minio_secret_key: ""

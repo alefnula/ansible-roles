@@ -6,3 +6,8 @@
 {% endfor %}
 {%- endif -%}
 {%- endfor %}
+
+# VM Cluster
+{% for node in groups['nodes'] %}
+{{ hostvars[node]['ansible_host'] }} {{ node }}
+{% endfor %}

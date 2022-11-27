@@ -29,6 +29,17 @@ stringData:
   password: "{{ postgres_cluster_pass }}"
 
 ---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: "{{ postgres_cluster_name}}-minio-secret"
+  namespace: "{{ postgres_cluster_namespace }}"
+stringData:
+  minio_access_key: "{{ minio_access_key }}"
+  minio_secret_key: "{{ minio_secret_key }}"
+
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -39,6 +50,21 @@ spec:
 
   superuserSecret:
     name: "{{ postgres_cluster_name}}-superuser-secret"
+
+{% if minio_url != '' %}
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: "s3://{{ postgres_cluster_name }}/"
+      endpointURL: "{{ minio_url }}"
+      s3Credentials:
+        accessKeyId:
+          name: "{{ postgres_cluster_name}}-minio-secret"
+          key: minio_access_key
+        secretAccessKey:
+          name: "{{ postgres_cluster_name}}-minio-secret"
+          key: minio_secret_key
+{% endif %}
 
   bootstrap:
     initdb:
@@ -74,3 +100,17 @@ spec:
       protocol: TCP
       port: 5432
       targetPort: 5432
+
+{% if minio_url != "" %}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: backup-example
+  namespace: "{{ postgres_cluster_namespace }}"
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: "{{ postgres_cluster_name}}"
+{% endif %}
