@@ -4,6 +4,15 @@
   hostname:
     name: "{{ inventory_hostname_short }}"
 
+- name: Add self to /etc/hosts
+  become: true
+  blockinfile:
+    block: "{{ lookup('template', 'hosts') }}"
+    path: /etc/hosts
+    marker: "# {mark} Localhost configuration"
+    create: true
+    mode: "0644"
+
 - name: Install common packages
   include_tasks: packages.yml
 

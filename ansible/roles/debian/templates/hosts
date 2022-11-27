@@ -1,0 +1,2 @@
+127.0.0.1 {{ inventory_hostname_short }}
+{{ ansible_host }} {{ inventory_hostname_short }}
