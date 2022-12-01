@@ -10,16 +10,19 @@
   file:
     path: "{{ multipass_dir }}"
     state: directory
+  when: debian_replace
 
 - name: Get latest Debian SHA512SUM
   shell: curl -s "{{ debian_latest_url }}/SHA512SUMS" | grep "{{ debian_image }}" | awk -F ' ' '{print $1}'
   register: sha512sum
+  when: debian_replace
 
 - name: Download latest Debian image
   get_url:
     url: "{{ debian_latest_url }}/{{ debian_image }}"
     dest: "{{ multipass_dir }}/{{ debian_image }}"
     checksum: "sha512:{{ sha512sum.stdout }}"
+  when: debian_replace
 
 # If the image is not a qcow2 image it needs to be converted
 # - name: Convert the image into qcow2 format
@@ -43,7 +46,7 @@
 
 - name: Launch VMs
   shell: |
-    cat << EOF | multipass launch --name {{ item }} --mem {{ multipass_image_mem }} --cloud-init - {{ multipass_image }}
+    cat << EOF | multipass launch --name {{ item }} --mem {{ multipass_image_mem }} --disk {{ multipass_image_size }} --cloud-init - {{ multipass_image }}
     {{ lookup('template', 'cloud-init.yml') }}
     EOF
   vars:
@@ -53,6 +56,7 @@
 - name: Stop VMs to replace them with Debian
   command: "multipass stop {{ item }}"
   with_items: "{{ nodes }}"
+  when: debian_replace
 
 - name: Replace the images with Debian
   become: true
@@ -60,14 +64,17 @@
     src: "{{ multipass_dir }}/{{ debian_image_qcow2 }}"
     dest: "{{ multipass_instance_location }}/{{ item }}/{{ multipass_ubuntu_image }}"
   with_items: "{{ nodes }}"
+  when: debian_replace
 
 - name: Resize the image
   command: multipass set local.{{ item }}.disk={{ multipass_image_size }}
   with_items: "{{ nodes }}"
+  when: debian_replace
 
 - name: Start VMs
   command: "multipass start {{ item }}"
   with_items: "{{ nodes }}"
+  when: debian_replace
 
 # Get instance IPs
 - name: Set nodes_data var
