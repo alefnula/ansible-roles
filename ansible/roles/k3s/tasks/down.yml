@@ -8,11 +8,20 @@
   when: color == "green"
   delegate_to: "127.0.0.1"
 
-- name: Check if k3s is already installed
+- name: Check if k3s server is installed
   stat:
     path: /usr/local/bin/k3s-uninstall.sh
-  register: uninstaller
+  register: uninstaller_server
 
-- name: Uninstall k3s if it's installed
+- name: Uninstall k3s server if it's installed
   command: /usr/local/bin/k3s-uninstall.sh
-  when: uninstaller.stat.exists
+  when: uninstaller_server.stat.exists
+
+- name: Check if k3s agent is installed
+  stat:
+    path: /usr/local/bin/k3s-agent-uninstall.sh
+  register: uninstaller_agent
+
+- name: Uninstall k3s agent if it's installed
+  command: /usr/local/bin/k3s-agent-uninstall.sh
+  when: uninstaller_agent.stat.exists
