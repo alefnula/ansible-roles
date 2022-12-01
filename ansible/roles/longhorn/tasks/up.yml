@@ -1,13 +1,13 @@
 ---
 - name: Install Longhorn operator
-  command: "kubectl apply -f {{ longhorn_manifest }}"
+  command: "kubectl --context {{ cluster }} apply -f {{ longhorn_manifest }}"
 
 - name: Wait for Longhorn to become available
   shell: |
-    kubectl wait --timeout='{{ longhorn_wait_timeout }}'  \
-                 --namespace=longhorn-system         \
-                 --for=condition=Available=true  \
-                 deployment {{ item }}
+    kubectl --context {{ cluster }} wait --timeout='{{ longhorn_wait_timeout }}' \
+                                         --namespace=longhorn-system             \
+                                         --for=condition=Available=true          \
+                                         deployment {{ item }}
   register: result
   until: result.rc == 0
   retries: 20
@@ -25,6 +25,6 @@
 
 - name: Create Longhorn Ingress
   shell: |
-    cat <<EOF | kubectl apply -f -
+    cat <<EOF | kubectl --context {{ cluster }} apply -f -
     {{ lookup('template', 'longhorn-ingress.yml') }}
     EOF
