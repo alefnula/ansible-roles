@@ -1,7 +1,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Backup
 metadata:
-  name: "{{ postgres_cluster_name }}-backup"
+  name: "{{ postgres_cluster_name }}-on-demand-backup"
+  namespace: "{{ postgres_cluster_namespace }}"
 spec:
   cluster:
-    name: pg-backup
+    name: "{{ postgres_cluster_name}}"

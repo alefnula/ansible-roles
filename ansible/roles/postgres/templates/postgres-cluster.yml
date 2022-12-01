@@ -55,7 +55,7 @@ spec:
   backup:
     retentionPolicy: "30d"
     barmanObjectStore:
-      destinationPath: "s3://{{ postgres_cluster_name }}/"
+      destinationPath: "s3://{{ postgres_cluster_name }}{{ '-vm' if cluster == 'vm' else ''}}/"
       endpointURL: "{{ minio_url }}"
       s3Credentials:
         accessKeyId:
@@ -125,7 +125,7 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: backup-example
+  name: "{{ postgres_cluster_name }}-backup"
   namespace: "{{ postgres_cluster_namespace }}"
 spec:
   schedule: "0 0 0 * * *"
