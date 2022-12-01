@@ -32,7 +32,7 @@
     mode: "0600"
   when: private_registry_url != ""
 
-- name: Install k3s on green
+- name: Install k3s on green (multi-master)
   command: >
     k3sup install --ip='{{ ansible_host }}'
                   --user='{{ ansible_user }}'
@@ -43,8 +43,22 @@
                   --cluster
                   --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
   failed_when: false
-  when: color == "green"
+  when: multi_master and color == "green"
   delegate_to: "127.0.0.1"
+
+- name: Install k3s on green (single-master)
+  command: >
+    k3sup install --ip='{{ ansible_host }}'
+                  --user='{{ ansible_user }}'
+                  --k3s-channel=stable
+                  --local-path=~/.kube/config
+                  --merge
+                  --context '{{ cluster }}'
+                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+  failed_when: false
+  when: not multi_master and color == "green"
+  delegate_to: "127.0.0.1"
+
 
 - name: Wait for green to bootstrap the cluster
   command: kubectl get nodes
@@ -60,7 +74,8 @@
     green_ip: "{{ hostvars[groups['green'][0]]['ansible_host'] }}"
   delegate_to: “{{ groups['green'][0] }}“
 
-- name: Install k3s on the rest of the nodes
+
+- name: Install k3s on the rest of the nodes (multi-master)
   command: >
     k3sup join --ip='{{ ansible_host }}'
                --user='{{ ansible_user }}'
@@ -69,7 +84,19 @@
                --k3s-channel=stable
                --server
                --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
-  when: color != "green"
+  when: multi_master and color != "green"
+  delegate_to: "127.0.0.1"
+  failed_when: false
+
+- name: Install k3s on the rest of the nodes (single-master)
+  command: >
+    k3sup join --ip='{{ ansible_host }}'
+               --user='{{ ansible_user }}'
+               --server-ip='{{ green_ip }}'
+               --server-user='{{ ansible_user }}'
+               --k3s-channel=stable
+               --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+  when: not multi_master and color != "green"
   delegate_to: "127.0.0.1"
   failed_when: false
 

@@ -1,6 +1,7 @@
 project: k3s
 domain: "{{ project }}.test"
 cluster: vm
+multi_master: false
 
 private_registry_url: ""
 private_registry_user: ""
