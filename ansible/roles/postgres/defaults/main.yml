@@ -1,3 +1,7 @@
+# Cluster
+cluster: vm
+
+# Postgres
 wait_timeout: "1200s"
 cloudnative_pg_manifest: "https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.18/releases/cnpg-1.18.0.yaml"
 postgres_instances: 2
@@ -8,7 +12,7 @@ postgres_cluster_user: "k3s"
 postgres_cluster_pass: "k3s"
 postgres_cluster_db: "k3s"
 
-# backup
+# Backup
 minio_url: ""
 minio_access_key: ""
 minio_secret_key: ""

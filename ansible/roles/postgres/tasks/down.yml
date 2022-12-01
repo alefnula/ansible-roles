@@ -1,9 +1,9 @@
 ---
 - name: Delete postgres cluster
   shell: |
-    cat <<EOF | kubectl delete -f -
+    cat <<EOF | kubectl --context {{ cluster }} delete -f -
     {{ lookup('template', 'postgres-cluster.yml') }}
     EOF
 
 - name: Delete CloudnativePG operator
-  command: "kubectl delete -f {{ cloudnative_pg_manifest }}"
+  command: "kubectl --context {{ cluster }} delete -f {{ cloudnative_pg_manifest }}"
