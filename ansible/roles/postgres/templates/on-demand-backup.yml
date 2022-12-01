@@ -1,0 +1,7 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: "{{ postgres_cluster_name }}-backup"
+spec:
+  cluster:
+    name: pg-backup

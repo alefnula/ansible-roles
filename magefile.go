@@ -118,8 +118,11 @@ func (Longhorn) Down() error { return Ansible{Tags: "longhorn-down"}.Run() }
 // ! Postgres
 type Postgres mg.Namespace
 
-// : Longhorn setup.
+// : Postgres setup.
 func (Postgres) Up() error { return Ansible{Tags: "postgres-up"}.Run() }
 
-// : Longhorn teardown.
+// : Postgres teardown.
 func (Postgres) Down() error { return Ansible{Tags: "postgres-down"}.Run() }
+
+// : Postgres backup.
+func (Postgres) Backup() error { return Ansible{Tags: "postgres-backup"}.Run() }

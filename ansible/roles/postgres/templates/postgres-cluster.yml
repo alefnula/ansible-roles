@@ -64,17 +64,36 @@ spec:
         secretAccessKey:
           name: "{{ postgres_cluster_name}}-minio-secret"
           key: minio_secret_key
-{% endif %}
 
+  bootstrap:
+    recovery:
+      source: clusterBackup
+
+  externalClusters:
+    - name: clusterBackup
+      barmanObjectStore:
+        serverName: "{{ postgres_cluster_name }}"
+        destinationPath: "s3://{{ postgres_cluster_name }}/"
+        endpointURL: "{{ minio_url }}"
+        s3Credentials:
+          accessKeyId:
+            name: "{{ postgres_cluster_name}}-minio-secret"
+            key: minio_access_key
+          secretAccessKey:
+            name: "{{ postgres_cluster_name}}-minio-secret"
+            key: minio_secret_key
+{% else %}
   bootstrap:
     initdb:
       database: "{{ postgres_cluster_db }}"
       owner: "{{ postgres_cluster_user }}"
       secret:
         name: "{{ postgres_cluster_name}}-secret"
+{% endif %}
 
   primaryUpdateStrategy: unsupervised
   storage:
+    # size: 1Gi
     pvcTemplate:
       accessModes:
         - ReadWriteOnce

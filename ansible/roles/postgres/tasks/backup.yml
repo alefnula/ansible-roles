@@ -1,0 +1,6 @@
+---
+- name: Perform on-demand backup
+  shell: |
+    cat <<EOF | kubectl --context {{ cluster }} delete -f -
+    {{ lookup('template', 'on-demand-backup.yml') }}
+    EOF
