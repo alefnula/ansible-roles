@@ -1,0 +1,41 @@
+---
+- name: Create postgres directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ postgres_dir }}"
+    - "{{ postgres_dir }}/data"
+
+- name: Create docker-compose.yml
+  template:
+    src: docker-compose.yml
+    dest: "{{ postgres_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create .env file
+  template:
+    src: env
+    dest: "{{ postgres_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: docker-compose down (just in case)
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    state: absent
+    remove_orphans: yes
+
+- name: docker-compose up
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+
+- name: Delete .env file
+  file:
+    path: "{{ postgres_dir }}/.env"
+    state: absent
