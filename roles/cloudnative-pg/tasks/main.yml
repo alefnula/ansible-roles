@@ -1,23 +1,23 @@
-- name: Postgres setup
-  tags: postgres-up
+- name: Cloudnative PG setup
+  tags: cloudnative-pg-up
   include_tasks:
     file: up.yml
     apply:
-      tags: postgres-up
-  when: '"postgres-up" in ansible_run_tags'
+      tags: cloudnative-pg-up
+  when: '"cloudnative-pg-up" in ansible_run_tags'
 
-- name: Postgres teardown
-  tags: postgres-down
+- name: Cloudnative PG teardown
+  tags: cloudnative-pg-down
   include_tasks:
     file: down.yml
     apply:
-      tags: postgres-down
-  when: '"postgres-down" in ansible_run_tags'
+      tags: cloudnative-pg-down
+  when: '"cloudnative-pg-down" in ansible_run_tags'
 
-- name: Postgres on-demand backup
-  tags: postgres-backup
+- name: Cloudnative PG on-demand backup
+  tags: cloudnative-pg-backup
   include_tasks:
     file: backup.yml
     apply:
-      tags: postgres-backup
-  when: '"postgres-backup" in ansible_run_tags' 
+      tags: cloudnative-pg-backup
+  when: '"cloudnative-pg-backup" in ansible_run_tags'
