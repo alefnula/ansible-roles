@@ -13,6 +13,19 @@
     create: true
     mode: "0644"
 
+- name: Disable IPv6
+  become: true
+  blockinfile:
+    block: "{{ lookup('template', 'disable-ipv6.conf') }}"
+    path: /etc/sysctl.conf
+    marker: "# {mark} Disable IPv6"
+    create: true
+    mode: "0644"
+
+- name: Apply new sysctl.conf configuration
+  become: true
+  command: sysctl -p
+
 - name: Install common packages
   include_tasks: packages.yml
 
