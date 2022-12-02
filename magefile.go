@@ -115,14 +115,14 @@ func (Longhorn) Up() error { return Ansible{Tags: "longhorn-up"}.Run() }
 // : Longhorn teardown.
 func (Longhorn) Down() error { return Ansible{Tags: "longhorn-down"}.Run() }
 
-// ! Postgres
-type Postgres mg.Namespace
+// ! Cloudnative PG
+type Cloudnative mg.Namespace
 
-// : Postgres setup.
-func (Postgres) Up() error { return Ansible{Tags: "postgres-up"}.Run() }
+// : Cloudnative PG setup.
+func (Cloudnative) Up() error { return Ansible{Tags: "cloudnative-pg-up"}.Run() }
 
-// : Postgres teardown.
-func (Postgres) Down() error { return Ansible{Tags: "postgres-down"}.Run() }
+// : Cloudnative PG teardown.
+func (Cloudnative) Down() error { return Ansible{Tags: "cloudnative-pg-down"}.Run() }
 
-// : Postgres backup.
-func (Postgres) Backup() error { return Ansible{Tags: "postgres-backup"}.Run() }
+// : Cloudnative PG backup.
+func (Cloudnative) Backup() error { return Ansible{Tags: "cloudnative-pg-backup"}.Run() }

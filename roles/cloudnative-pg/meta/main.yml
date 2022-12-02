@@ -3,7 +3,7 @@ galaxy_info:
     - name: Ubuntu
       versions: [jammy]
   author: Viktor Kerkez
-  description: Setup PostgreSQL in replication mode.
+  description: Setup Cloudnative PostgreSQL in replication mode.
   license: GNU AFFERO GENERAL PUBLIC LICENSE
 
   min_ansible_version: "2.1"
