@@ -1,0 +1,5 @@
+- name: Reboot Raspberry Pi
+  become: true
+  reboot:
+  listen: reboot
+  when: cluster == "rpi"

@@ -7,7 +7,7 @@ import subprocess
 
 
 class VM:
-    NODES = ["green", "blue", "red", "black"]
+    NODES = ["green", "blue", "red"]
 
     def __init__(self, vm: dict):
         self.name = vm["name"]

@@ -1,0 +1,7 @@
+project: project
+domain: "{{ project }}.test"
+
+nodes:
+  - green
+  - blue
+  - red

@@ -1,0 +1,39 @@
+---
+# Configure Raspberry Pi specific stuff
+
+- name: Check if cgroups are enabled
+  shell: cat /boot/cmdline.txt | grep "cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory"
+  failed_when: false
+  register: cgroups_enabled
+
+- name: Enable required cgroup features on Raspberry Pi
+  become: true
+  lineinfile:
+    path: /boot/cmdline.txt
+    backrefs: true
+    regexp: "^(.+)$"
+    line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+    state: present
+  when: cgroups_enabled.rc != 0
+# - name: Update boot config
+#   become: true
+#   blockinfile:
+#     block: "{{ lookup('file', 'boot-config') }}"
+#     path: /boot/firmware/config.txt
+#     marker: "# {mark} Raspberry PI boot configuration"
+#     create: true
+#     mode: "0755"
+
+# - name: Create POE+ fan udev rules
+#   become: true
+#   copy:
+#     dest: /etc/udev/rules.d/50-rpi-fan.rules
+#     content: "{{ lookup('file', '50-rpi-fan.rules') }}"
+#     owner: root
+#     group: root
+#     mode: 0644
+
+# - name: Update udev rules
+#   become: true
+#   shell: udevadm control --reload-rules && udevadm trigger
+#   failed_when: false

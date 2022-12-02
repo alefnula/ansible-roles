@@ -1,0 +1,18 @@
+SUBSYSTEM=="thermal"
+KERNEL=="thermal_zone0"
+
+# If the temp hits 75c, turn on the fan. Turn it off again when it goes back down to 70.
+ATTR{trip_point_3_temp}="75000"
+ATTR{trip_point_3_hyst}="5000"
+#
+# If the temp hits 78c, higher RPM.
+ATTR{trip_point_2_temp}="78000"
+ATTR{trip_point_2_hyst}="2000"
+#
+# If the temp hits 80c, higher RPM.
+ATTR{trip_point_1_temp}="80000"
+ATTR{trip_point_1_hyst}="2000"
+#
+# If the temp hits 81c, highest RPM.
+ATTR{trip_point_0_temp}="81000"
+ATTR{trip_point_0_hyst}="5000"

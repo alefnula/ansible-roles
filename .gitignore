@@ -1,2 +1,3 @@
 .multipass
 .passwd
+vars/secrets.yml

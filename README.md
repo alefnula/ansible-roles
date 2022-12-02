@@ -2,11 +2,11 @@
 
 ## Setup project
 
-Create a `ansible/vars/secrets.yml` file with the same variables as in the `ansible/vars/secrets.yaml.template`.
+Create a `vars/secrets.yml` file with the same variables as in the `vars/secrets.yaml.template`.
 
 ```bash
 # Encrypt the file
-ansible-vault encrypt ansible/vars/secrets.yml
+ansible-vault encrypt vars/secrets.yml
 
 # Create a .passwd file and put your encryption password in it.
 # You can also choose not to do this and enter the ansible vault password
