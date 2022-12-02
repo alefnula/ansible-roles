@@ -1,0 +1,6 @@
+docker_packages:
+  - docker.io
+  - docker-compose
+
+docker_services:
+  - docker

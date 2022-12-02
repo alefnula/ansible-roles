@@ -1,0 +1,23 @@
+---
+- name: Install all required packages
+  become: true
+  apt:
+    name: "{{ docker_packages }}"
+    state: latest
+    update_cache: yes
+
+- name: Start all services
+  become: true
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  loop: "{{ docker_services }}"
+
+- name: Ensure {{ ansible_user }} is added to the docker group.
+  become: true
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
