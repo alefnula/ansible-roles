@@ -1,7 +1,13 @@
 project: k3s
 domain: "{{ project }}.test"
 cluster: vm
-multi_master: false
+
+# K3s
+k3s_multi_master: false
+# --disable servicelb        : Disable the service load balancer. (Use metallb instead)
+# --disable-cloud-controller : Disable the K3s cloud controller. I don't think I need it.
+# --disable local-storage    : Disable the K3s local storage. I'm going to setup longhorn storage provider instead.
+k3s_extra_args: "--disable-cloud-controller"
 
 private_registry_url: ""
 private_registry_user: ""

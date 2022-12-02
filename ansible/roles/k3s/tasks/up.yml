@@ -32,9 +32,9 @@
                   --merge
                   --context '{{ cluster }}'
                   --cluster
-                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}' {{ k3s_extra_args }}"
   failed_when: false
-  when: multi_master and color == "green"
+  when: k3s_multi_master and color == "green"
   delegate_to: "127.0.0.1"
 
 - name: Install k3s on green (single-master)
@@ -45,9 +45,9 @@
                   --local-path=~/.kube/config
                   --merge
                   --context '{{ cluster }}'
-                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
+                  --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}' {{ k3s_extra_args }}"
   failed_when: false
-  when: not multi_master and color == "green"
+  when: not k3s_multi_master and color == "green"
   delegate_to: "127.0.0.1"
 
 
@@ -74,8 +74,8 @@
                --server-user='{{ ansible_user }}'
                --k3s-channel=stable
                --server
-               --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
-  when: multi_master and color != "green"
+               --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}' {{ k3s_extra_args }}"
+  when: k3s_multi_master and color != "green"
   delegate_to: "127.0.0.1"
   failed_when: false
 
@@ -87,7 +87,7 @@
                --server-user='{{ ansible_user }}'
                --k3s-channel=stable
                --k3s-extra-args="--node-external-ip '{{ ansible_host }}' --node-ip '{{ ansible_host }}'"
-  when: not multi_master and color != "green"
+  when: not k3s_multi_master and color != "green"
   delegate_to: "127.0.0.1"
   failed_when: false
 
