@@ -1,4 +1,11 @@
 ---
+- name: Install all required packages
+  become: true
+  apt:
+    name: "{{ longhorn_packages }}"
+    state: latest
+    update_cache: yes
+
 - name: Install Longhorn operator
   command: "kubectl --context {{ cluster }} apply -f {{ longhorn_manifest }}"
 

@@ -4,11 +4,7 @@ cluster: vm
 
 packages:
   - acl # Needed for becoming non root user (i.e. postgres)
-  - curl
   - ntp
-  # Longhorn requirements
-  - nfs-common
-  - open-iscsi
 
 services:
   - ntp

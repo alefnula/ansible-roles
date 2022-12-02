@@ -4,6 +4,9 @@ domain: "{{ project }}.test"
 cluster: vm
 
 # Longhorn
+longhorn_packages:
+  - nfs-common
+  - open-iscsi
 longhorn_manifest: https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
 longhorn_uninstall_manifest: https://raw.githubusercontent.com/longhorn/longhorn/master/uninstall/uninstall.yaml
 longhorn_wait_timeout: "1200s"
