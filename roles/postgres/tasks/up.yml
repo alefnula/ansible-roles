@@ -37,7 +37,7 @@
     name: "Backup PostgreSQL"
     minute: "0"
     hour: "0"
-    job: "docker exec postgres /pg_backup.sh >> {{ postgres_dir }}/backup/pg_backup.log"
+    job: "docker exec postgres /pg_backup.sh 2>&1 >> {{ postgres_dir }}/backup/pg_backup.log"
     user: "{{ ansible_user }}"
 
 - name: Add log rotating configuration for pg_backup.log
