@@ -1,4 +1,4 @@
 postgres_dir: "/home/{{ ansible_user }}/postgres"
 postgres_superuser_user: postgres
 postgres_superuser_pass: postgres
-postgres_superuse_db: postgres
+postgres_superuser_db: postgres

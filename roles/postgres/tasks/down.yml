@@ -5,8 +5,12 @@
     project_src: "{{ postgres_dir }}"
     state: absent
     remove_orphans: yes
+  when: color == "green" or color == "blue"
+  failed_when: false
 
 - name: Delete postgres directory
+  become: true
   file:
     path: "{{ postgres_dir }}"
-    state: directory
+    state: absent
+  when: color == "green" or color == "blue"

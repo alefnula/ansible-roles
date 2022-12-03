@@ -8,6 +8,7 @@ services:
     network_mode: host
     volumes:
       - "{{ postgres_dir }}/data:/var/lib/postgresql/data"
+      - "{{ postgres_dir }}/replication:/var/lib/postgresql/replication"
     environment:
       - POSTGRES_USER=${POSTGRES_SUPERUSER_NAME}
       - POSTGRES_PASSWORD=${POSTGRES_SUPERUSER_PASS}

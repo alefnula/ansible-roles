@@ -13,11 +13,3 @@
     apply:
       tags: postgres-down
   when: '"postgres-down" in ansible_run_tags'
-
-- name: Postgres on-demand backup
-  tags: postgres-backup
-  include_tasks:
-    file: backup.yml
-    apply:
-      tags: postgres-backup
-  when: '"postgres-backup" in ansible_run_tags' 

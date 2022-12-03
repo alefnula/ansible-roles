@@ -6,6 +6,8 @@
   loop:
     - "{{ postgres_dir }}"
     - "{{ postgres_dir }}/data"
+    - "{{ postgres_dir }}/replication"
+  when: color == "green" or color == "blue"
 
 - name: Create docker-compose.yml
   template:
@@ -13,6 +15,7 @@
     dest: "{{ postgres_dir }}/docker-compose.yml"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
+  when: color == "green" or color == "blue"
 
 - name: Create .env file
   template:
@@ -20,6 +23,7 @@
     dest: "{{ postgres_dir }}/.env"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
+  when: color == "green" or color == "blue"
 
 - name: docker-compose down (just in case)
   docker_compose:
@@ -27,15 +31,170 @@
     project_src: "{{ postgres_dir }}"
     state: absent
     remove_orphans: yes
+  when: color == "green" or color == "blue"
+  failed_when: false
 
-- name: docker-compose up
+- name: docker-compose up green
   docker_compose:
     project_name: postgres
     project_src: "{{ postgres_dir }}"
     env_file: "{{ postgres_dir }}/.env"
     recreate: always
+  when: color == "green"
 
-- name: Delete .env file
-  file:
-    path: "{{ postgres_dir }}/.env"
+- name: Wait until Postgres initializes the database
+  shell: "while ! nc -z 127.0.0.1 5432; do sleep 1; done;"
+  when: color == "green"
+
+- name: Get the green node ip
+  set_fact:
+    green_ip: "{{ hostvars[groups['green'][0]]['ansible_host'] }}"
+  delegate_to: “{{ groups['green'][0] }}“
+
+- name: Get the blue node ip
+  set_fact:
+    blue_ip: "{{ hostvars[groups['blue'][0]]['ansible_host'] }}"
+  delegate_to: “{{ groups['blue'][0] }}“
+
+- name: docker-compose down green
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
     state: absent
+    remove_orphans: yes
+  when: color == "green"
+
+- name: Configure replication in postgresql.conf
+  become: true
+  lineinfile:
+    dest: "{{ postgres_dir }}/data/postgresql.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - regexp: '^#?wal_level'
+      line: "wal_level = replica"
+    - regexp: '^#?hot_standby'
+      line: "hot_standby = on"
+    - regexp: '^#?max_wal_senders'
+      line: "max_wal_senders = 10"
+    - regexp: '^#?max_replication_slots'
+      line: "max_replication_slots = 10"
+    - regexp: '^#?hot_standby_feedback'
+      line: "hot_standby_feedback = on"
+  when: color == "green"
+
+- name: Allow replication from blue
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ postgres_dir }}/data/pg_hba.conf"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "host\tall\treplicator\t{{ blue_ip }}/32\ttrust"
+    - "host\treplication\treplicator\t{{ blue_ip }}/32\ttrust"
+  when: color == "green"
+
+- name: docker-compose up green
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+  when: color == "green"
+
+- name: Wait until Postgres starts
+  shell: "while ! nc -z 127.0.0.1 5432; do sleep 1; done;"
+  when: color == "green"
+
+- name: Create replication user.
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/psql -U postgres postgres -c "CREATE ROLE replicator WITH REPLICATION PASSWORD '{{ postgres_superuser_pass }}' LOGIN;"
+  when: color == "green"
+
+- name: Create replication sloot.
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/psql -U postgres postgres -c "SELECT * FROM pg_create_physical_replication_slot('replication_slot_blue');"
+  when: color == "green"
+
+
+- name: Create backup
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/pg_basebackup -h localhost -U replicator --checkpoint=fast -D /var/lib/postgresql/replication/data -R -S replication_slot_blue -X stream
+  when: color == "green"
+
+- name: Archive backup
+  become: true
+  archive:
+    path: "{{ postgres_dir }}/replication/data"
+    dest: "{{ postgres_dir }}/data.tar.gz"
+  when: color == "green"
+
+- name: Copy backup green -> localhost
+  fetch:
+    src: "{{ postgres_dir }}/data.tar.gz"
+    dest: /tmp/data.tar.gz
+    flat: true
+  when: color == "green"
+
+- name: Copy backup localhoost -> blue
+  copy:
+    src: /tmp/data.tar.gz
+    dest: "{{ postgres_dir }}/data.tar.gz"
+  when: color == "blue"
+
+- name: Remove data on blue
+  file:
+    path: "{{ postgres_dir }}/data"
+    state: absent
+  when: color == "blue"
+
+- name: Unachive backup
+  become: true
+  unarchive:
+    src: "{{ postgres_dir }}/data.tar.gz"
+    dest: "{{ postgres_dir }}"
+    remote_src: true
+  when: color == "blue"
+
+- name: Fix connection info on blue.
+  become: true
+  lineinfile:
+    dest: "{{ postgres_dir }}/data/postgresql.auto.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - regexp: '^primary_conninfo'
+      line: "primary_conninfo = 'host={{ green_ip }} port=5432 user=replicator password={{ postgres_superuser_pass }}'"
+  when: color == "blue"
+
+- name: Add restore_command on blue
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ postgres_dir }}/data/postgresql.auto.conf"
+    state: present
+    line: >
+      restore_command = 'cp /var/lib/postgresql/data/pg_wal/%f "%p"'
+  when: color == "blue"
+
+- name: docker-compose up blue
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+  when: color == "blue"
+
+- name: Delete backup
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ postgres_dir }}/data.tar.gz"
+    - "{{ postgres_dir }}/replication/*"
+  when: color == "green" or color == "blue"
