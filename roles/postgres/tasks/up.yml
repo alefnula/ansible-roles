@@ -6,11 +6,57 @@
   set_fact:
     replica_ip: "{{ hostvars[groups['blue'][0]]['ansible_host'] }}"
 
+# Common folders and files
+- name: Create postgres directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ postgres_dir }}"
+    - "{{ postgres_dir }}/data"
+    - "{{ postgres_dir }}/backup"
+
+- name: Create .env file
+  template:
+    src: env
+    dest: "{{ postgres_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create pg_backup.sh file
+  template:
+    src: pg_backup.sh
+    dest: "{{ postgres_dir }}/pg_backup.sh"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+# Backup
+- name: Create a cron job for PostgreSQL backup
+  cron:
+    name: "Backup PostgreSQL"
+    minute: "0"
+    hour: "0"
+    job: "docker exec postgres /pg_backup.sh >> {{ postgres_dir }}/backup/pg_backup.log"
+    user: "{{ ansible_user }}"
+
+- name: Add log rotating configuration for pg_backup.log
+  become: true
+  template:
+    src: pg_backup.logrotate
+    dest: /etc/logrotate.d/pg_backup
+    owner: root
+    group: root
+    mode: "0644"
+
+# Master
 - name: Setup master
   include_tasks:
     file: master.yml
   when: color == "green"
 
+
+# Replica
 - name: Setup replica
   include_tasks:
     file: replica.yml

@@ -1,0 +1,9 @@
+{{ postgres_dir }}/backup/pg_backup.log {
+    weekly
+    missingok
+    notifempty
+    rotate 5
+    size 10M
+    compress
+    delaycompress
+}
