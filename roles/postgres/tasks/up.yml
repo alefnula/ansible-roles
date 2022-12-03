@@ -1,12 +1,10 @@
 - name: Get the master node ip
   set_fact:
     master_ip: "{{ hostvars[groups['green'][0]]['ansible_host'] }}"
-  # delegate_to: “{{ groups['blue'][0] }}“---
 
 - name: Get the replica node ip
   set_fact:
     replica_ip: "{{ hostvars[groups['blue'][0]]['ansible_host'] }}"
-  # delegate_to: “{{ groups['blue'][0] }}“---
 
 - name: Setup master
   include_tasks:
