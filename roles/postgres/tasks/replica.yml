@@ -1,0 +1,66 @@
+- name: Create postgres directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ postgres_dir }}"
+
+- name: Create docker-compose.yml
+  template:
+    src: docker-compose.yml
+    dest: "{{ postgres_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create .env file
+  template:
+    src: env
+    dest: "{{ postgres_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copy backup localhoost -> replica
+  copy:
+    src: /tmp/data.tar.gz
+    dest: "{{ postgres_dir }}/data.tar.gz"
+
+- name: Unachive backup
+  become: true
+  unarchive:
+    src: "{{ postgres_dir }}/data.tar.gz"
+    dest: "{{ postgres_dir }}"
+    remote_src: true
+
+- name: Fix connection string on replica
+  become: true
+  lineinfile:
+    dest: "{{ postgres_dir }}/data/postgresql.auto.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - regexp: '^primary_conninfo'
+      line: "primary_conninfo = 'host={{ master_ip }} port=5432 user=replicator password={{ postgres_superuser_pass }}'"
+
+- name: Add restore_command on replica
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ postgres_dir }}/data/postgresql.auto.conf"
+    state: present
+    line: >
+      restore_command = 'cp /var/lib/postgresql/data/pg_wal/%f "%p"'
+
+- name: docker-compose up replica
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+
+- name: Delete backup
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ postgres_dir }}/data.tar.gz"

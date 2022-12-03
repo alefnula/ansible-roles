@@ -1,0 +1,143 @@
+- name: Create postgres directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ postgres_dir }}"
+    - "{{ postgres_dir }}/data"
+    - "{{ postgres_dir }}/replication"
+
+- name: Create initdb docker-compose.yml
+  template:
+    src: initdb-compose.yml
+    dest: "{{ postgres_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create .env file
+  template:
+    src: env
+    dest: "{{ postgres_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: docker-compose down (just in case)
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    state: absent
+    remove_orphans: yes
+  failed_when: false
+
+- name: docker-compose up master
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+
+- name: Wait until Postgres initializes the database
+  shell: "while ! nc -z 127.0.0.1 5432; do sleep 1; done;"
+
+- name: docker-compose down master
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    state: absent
+    remove_orphans: yes
+
+- name: Configure replication in postgresql.conf
+  become: true
+  lineinfile:
+    dest: "{{ postgres_dir }}/data/postgresql.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - regexp: '^#?wal_level'
+      line: "wal_level = replica"
+    - regexp: '^#?hot_standby'
+      line: "hot_standby = on"
+    - regexp: '^#?max_wal_senders'
+      line: "max_wal_senders = 10"
+    - regexp: '^#?max_replication_slots'
+      line: "max_replication_slots = 10"
+    - regexp: '^#?hot_standby_feedback'
+      line: "hot_standby_feedback = on"
+
+- name: Allow replication from replica
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ postgres_dir }}/data/pg_hba.conf"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "host\tall\treplicator\t{{ replica_ip }}/32\ttrust"
+    - "host\treplication\treplicator\t{{ replica_ip }}/32\ttrust"
+
+- name: docker-compose up master
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
+
+- name: Wait until Postgres starts
+  shell: "while ! nc -z 127.0.0.1 5432; do sleep 1; done;"
+
+- name: Create replication user
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/psql -U postgres postgres -c "CREATE ROLE replicator WITH REPLICATION PASSWORD '{{ postgres_superuser_pass }}' LOGIN;"
+
+- name: Create replication sloot
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/psql -U postgres postgres -c "SELECT * FROM pg_create_physical_replication_slot('replication_slot_replica');"
+
+- name: Create backup
+  community.docker.docker_container_exec:
+    container: postgres
+    command: /usr/bin/pg_basebackup -h localhost -U replicator --checkpoint=fast -D /var/lib/postgresql/replication/data -R -S replication_slot_replica -X stream
+
+- name: Archive backup
+  become: true
+  archive:
+    path: "{{ postgres_dir }}/replication/data"
+    dest: "{{ postgres_dir }}/data.tar.gz"
+
+- name: Copy backup master -> localhost
+  fetch:
+    src: "{{ postgres_dir }}/data.tar.gz"
+    dest: /tmp/data.tar.gz
+    flat: true
+
+- name: docker-compose down master
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    state: absent
+    remove_orphans: yes
+
+- name: Cleanup
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ postgres_dir }}/data.tar.gz"
+    - "{{ postgres_dir }}/replication"
+
+- name: Create production docker-compose.yml
+  template:
+    src: docker-compose.yml
+    dest: "{{ postgres_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: docker-compose up master
+  docker_compose:
+    project_name: postgres
+    project_src: "{{ postgres_dir }}"
+    env_file: "{{ postgres_dir }}/.env"
+    recreate: always
