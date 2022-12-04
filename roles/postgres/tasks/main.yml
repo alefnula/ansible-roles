@@ -4,7 +4,7 @@
     file: up.yml
     apply:
       tags: postgres-up
-  when: '"postgres-up" in ansible_run_tags'
+  when: '"postgres-up" in ansible_run_tags and color in ("green", "blue")'
 
 - name: Postgres teardown
   tags: postgres-down
@@ -12,4 +12,4 @@
     file: down.yml
     apply:
       tags: postgres-down
-  when: '"postgres-down" in ansible_run_tags'
+  when: '"postgres-down" in ansible_run_tags and color in ("green", "blue")'
