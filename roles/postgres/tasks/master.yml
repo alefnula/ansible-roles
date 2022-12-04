@@ -12,7 +12,7 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
 
-- name: Pull postgres image
+- name: Pull image
   docker_image:
     name: "{{ postgres_image }}"
     source: pull

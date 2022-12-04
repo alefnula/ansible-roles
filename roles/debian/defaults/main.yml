@@ -3,8 +3,9 @@ domain: "{{ project }}.test"
 cluster: vm
 
 packages:
-  - acl # Needed for becoming non root user (i.e. postgres)
+  - acl    # Needed for becoming non root user (i.e. postgres)
   - ntp
+  - netcat # Used for waiting for a service to start
 
 services:
   - ntp
