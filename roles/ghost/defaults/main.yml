@@ -11,8 +11,17 @@ ghost_smtp_secure: false
 ghost_smtp_user: ""
 ghost_smtp_pass: ""
 
+
 # privacy
 ghost_use_update_check: false
 ghost_use_gravatar: false
 ghost_use_rpc_ping: true
 ghost_use_structured_data: true
+
+
+# minio
+ghost_mc_image: minio/mc:latest
+ghost_minio_bucket: ghost
+minio_url: ""
+minio_access_key: ""
+minio_secret_key: ""

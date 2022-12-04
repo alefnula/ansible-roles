@@ -20,9 +20,28 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
 
-- name: Pull image
+- name: Create config.production.json file
+  template:
+    src: config.production.json.j2
+    dest: "{{ ghost_dir }}/config.production.json"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create mc.config.json
+  template:
+    src: mc.config.json
+    dest: "{{ ghost_dir }}/mc.config.json"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Pull ghost image
   docker_image:
     name: "{{ ghost_image }}"
+    source: pull
+
+- name: Pull mc image
+  docker_image:
+    name: "{{ ghost_mc_image }}"
     source: pull
 
 - name: docker-compose down (just in case)

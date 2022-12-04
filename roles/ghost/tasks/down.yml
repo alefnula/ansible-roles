@@ -14,4 +14,3 @@
     path: "{{ ghost_dir }}"
     state: absent
   when: color == ghost_color
-  

@@ -11,3 +11,11 @@ services:
     network_mode: "host"
     environment:
       - NODE_ENV=production
+  mc:
+    container_name: mc
+    image: {{ ghost_mc_image }}
+    restart: always
+    command: mirror --overwrite --remove --md5 --watch /content/ minio/{{ ghost_minio_bucket }}/{{ cluster }}/
+    volumes:
+      - "{{ ghost_dir }}/mc.config.json:/root/.mc/config.json"
+      - "{{ ghost_dir }}/content:/content"
