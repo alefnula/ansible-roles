@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  ghost:
+    container_name: ghost
+    image: {{ ghost_image }}
+    restart: always
+    volumes:
+      - "{{ ghost_dir }}/config.production.json:/var/lib/ghost/config.production.json"
+      - "{{ ghost_dir }}/content:/var/lib/ghost/content"
+    network_mode: "host"
+    environment:
+      - NODE_ENV=production

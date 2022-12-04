@@ -1,0 +1,15 @@
+ghost_url: http://ghost.test
+ghost_port: 9000
+ghost_dir: "/home/{{ ansible_user }}/ghost"
+ghost_image: ghost:5.25
+ghost_color: red
+
+
+# Postgres
+postgres_superuser_user: postgres
+postgres_superuser_pass: postgres
+postgres_superuser_db: postgres
+
+ghost_postgres_user: ghost
+ghost_postgres_pass: ghost
+ghost_postgres_db: ghost

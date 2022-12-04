@@ -1,0 +1,38 @@
+{
+    "url": "{{ ghost_url }}",
+    "server": {
+        "port": {{ ghost_port }},
+        "host": "0.0.0.0"
+    },
+    "database": {
+        "client": "sqlite3",
+        "connection": {
+            "filename": "content/data/ghost.db"
+        },
+        "useNullAsDefault": true,
+        "debug": false
+    },
+    {# "mail": {
+        "from": "'Custom Name' <myemail@address.com>",
+        "transport": "SMTP",
+        "logger": true,
+        "options": {
+            "host": "",
+            "secureConnection": false,
+            "auth": {
+                "user": "",
+                "pass": ""
+            }
+        }
+    }, #}
+    "logging": {
+        "transports": [
+            "file",
+            "stdout"
+        ]
+    },
+    "process": "systemd",
+    "paths": {
+        "contentPath": "/var/lib/ghost/content"
+    }
+}

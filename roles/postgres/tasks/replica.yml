@@ -44,7 +44,7 @@
     line: >
       restore_command = 'cp /var/lib/postgresql/data/pg_wal/%f "%p"'
 
-- name: Pull postgres image
+- name: Pull image
   docker_image:
     name: "{{ postgres_image }}"
     source: pull

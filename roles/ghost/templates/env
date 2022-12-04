@@ -1,0 +1,3 @@
+POSTGRES_SUPERUSER_NAME={{ postgres_superuser_user }}
+POSTGRES_SUPERUSER_PASS={{ postgres_superuser_pass }}
+POSTGRES_SUPERUSER_DB={{ postgres_superuser_db }}

@@ -1,0 +1,17 @@
+---
+- name: docker-compose down
+  docker_compose:
+    project_name: ghost
+    project_src: "{{ ghost_dir }}"
+    state: absent
+    remove_orphans: yes
+  when: color == ghost_color
+  failed_when: false
+
+- name: Delete ghost directory
+  become: true
+  file:
+    path: "{{ ghost_dir }}"
+    state: absent
+  when: color == ghost_color
+  

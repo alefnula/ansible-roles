@@ -1,0 +1,15 @@
+- name: Ghost setup
+  tags: ghost-up
+  include_tasks:
+    file: up.yml
+    apply:
+      tags: ghost-up
+  when: '"ghost-up" in ansible_run_tags and color == ghost_color'
+
+- name: Ghost teardown
+  tags: ghost-down
+  include_tasks:
+    file: down.yml
+    apply:
+      tags: ghost-down
+  when: '"ghost-down" in ansible_run_tags and color == ghost_color'

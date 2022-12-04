@@ -1,0 +1,66 @@
+- name: Get the postgres master ip
+  set_fact:
+    postgres_master_ip: "{{ hostvars[groups['green'][0]]['ansible_host'] }}"
+
+- block:
+    - name: Create initdb.sql
+      template:
+        src: initdb.sql
+        dest: /tmp/initdb.sql
+    - name: Run initdb.sql
+      command: psql -h {{ postgres_master_ip }} -p 5432 -U {{ postgres_superuser_user }} -d {{ postgres_superuser_db }} -f /tmp/initdb.sql
+    - name: Delete initdb.sql
+      file:
+        path: /tmp/initdb.sql
+        state: absent
+  environment:
+    PGPASSWORD: "{{ postgres_superuser_pass }}"
+  when: color == ghost_color
+  delegate_to: "127.0.0.1"
+
+- name: Create ghost directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ ghost_dir }}"
+    - "{{ ghost_dir }}/content"
+
+- name: Create .env file
+  template:
+    src: env
+    dest: "{{ ghost_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create config.production.json file
+  template:
+    src: config.production.json.j2
+    dest: "{{ ghost_dir }}/config.production.json"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create docker-compose.yml
+  template:
+    src: docker-compose.yml
+    dest: "{{ ghost_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Pull image
+  docker_image:
+    name: "{{ ghost_image }}"
+    source: pull
+
+- name: docker-compose down (just in case)
+  docker_compose:
+    project_name: ghost
+    project_src: "{{ ghost_dir }}"
+    state: absent
+    remove_orphans: yes
+
+- name: docker-compose up
+  docker_compose:
+    project_name: ghost
+    project_src: "{{ ghost_dir }}"
+    recreate: always
