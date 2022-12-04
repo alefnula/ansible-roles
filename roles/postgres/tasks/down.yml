@@ -14,3 +14,12 @@
     path: "{{ postgres_dir }}"
     state: absent
   when: color == "green" or color == "blue"
+
+- name: Delete the cron job for PostgreSQL backup
+  cron:
+    name: "Backup PostgreSQL"
+    minute: "0"
+    hour: "0"
+    job: "docker exec postgres /pg_backup.sh 2>&1 >> {{ postgres_dir }}/backup/pg_backup.log"
+    user: "{{ ansible_user }}"
+    state: absent
