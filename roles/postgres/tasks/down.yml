@@ -23,3 +23,9 @@
     job: "docker exec postgres /pg_backup.sh 2>&1 >> {{ postgres_dir }}/backup/pg_backup.log"
     user: "{{ ansible_user }}"
     state: absent
+
+- name: Delete logrotate config for pg_backup.log
+  become: true
+  file:
+    path: /etc/logrotate.d/pg_backup
+    state: absent

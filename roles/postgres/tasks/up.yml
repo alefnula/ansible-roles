@@ -40,7 +40,7 @@
     job: "docker exec postgres /pg_backup.sh 2>&1 >> {{ postgres_dir }}/backup/pg_backup.log"
     user: "{{ ansible_user }}"
 
-- name: Add log rotating configuration for pg_backup.log
+- name: Add logrotate config for pg_backup.log
   become: true
   template:
     src: pg_backup.logrotate
