@@ -1,7 +1,7 @@
 ghost_url: http://ghost.test
 ghost_port: 9000
 ghost_dir: "/home/{{ ansible_user }}/ghost"
-ghost_image: ghost:5.25
+ghost_image: ghost:5.30
 ghost_color: red
 
 # email
